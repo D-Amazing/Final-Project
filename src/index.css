@@ -1,0 +1,9 @@
+/* index.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
+
+body {
+  font-family: 'Zen Maru Gothic', sans-serif;
+}
+
+/* If you want to use Tailwind, ensure your build process compiles this file with Tailwind CSS. */
