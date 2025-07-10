@@ -1,8 +1,10 @@
-// App.tsx
 // src/App.tsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+
+import { Navbar } from "./components/Navbar";
+
 import CheckoutPage from "./pages/CheckoutPage";
 import StorePage from "./pages/StorePage";
 import ProductDashboard from "./pages/ProductDashboard";
@@ -11,60 +13,28 @@ import Register from "./pages/Register";
 import OrderHistory from "./pages/OrderHistory";
 import ProfilePage from "./pages/ProfilePage";
 
-
-
-
-
-
-
-
-
-const Navbar = () => {
-  const { user, logout } = useAuth();
-  return (
-    <nav className="p-4 bg-gray-100 flex gap-4 justify-between">
-      <div className="space-x-4">
-        <Link to="/">Store</Link><br />
-        <Link to="/dashboard">Dashboard</Link><br />
-        <Link to="/profile">Profile</Link><br />
-      </div>
-      <div className="space-x-4">
-        {user ? (
-          <>
-            <span className="text-sm text-gray-700">Hello, {user.email}</span>
-            <button onClick={logout} className="text-red-500">Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link><br />
-            <Link to="/register">Register</Link>
-            <Link to="/checkout">Checkout</Link><br />
-            <Link to="/orders">My Orders</Link>
-          </>
-        )}
-      </div>
-    </nav>
-  );
-};
-
 const App = () => (
   <AuthProvider>
     <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/" element={<StorePage />} />
-        <Route path="/dashboard" element={<ProductDashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders" element={<OrderHistory />} />
-      </Routes>
+      <Navbar /> {/* This uses your Navbar component */}
+      <main className="p-6">
+        <Routes>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/" element={<StorePage />} />
+          <Route path="/dashboard" element={<ProductDashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrderHistory />} />
+        </Routes>
+      </main>
     </Router>
   </AuthProvider>
 );
 
 export default App;
+
+
 
 
 /**

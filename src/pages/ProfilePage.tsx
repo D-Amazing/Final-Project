@@ -12,7 +12,6 @@ import {
   query,
   where,
   getDocs,
-  deleteField
 } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { useNavigate } from "react-router-dom";

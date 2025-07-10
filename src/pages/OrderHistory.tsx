@@ -9,15 +9,14 @@ import {
   where,
   getDocs,
   orderBy,
-  Timestamp
-} from "firebase/firestore"; 
-
+  Timestamp,
+} from "firebase/firestore";
 import { Link } from "react-router-dom";
 
 type Order = {
   id: string;
   total: number;
-  createdAt: Timestamp;
+  createdAt?: Timestamp;
   products: {
     title: string;
     price: number;
@@ -28,26 +27,42 @@ type Order = {
 const OrderHistory: React.FC = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchOrders = async () => {
-      const q = query(
-        collection(db, "orders"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Order, "id">)
-      }));
-      setOrders(data);
+      try {
+        setLoading(true);
+        const q = query(
+          collection(db, "orders"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Order, "id">),
+        }));
+        setOrders(data);
+        setLoading(false);
+      } catch (err: unknown) {
+        console.error(err);
+        setError("Failed to fetch orders.");
+        setLoading(false);
+      }
     };
 
     fetchOrders();
   }, [user]);
+
+  if (loading) return <p className="p-6 text-center">Loading orders...</p>;
+  if (error)
+    return (
+      <p className="p-6 text-center text-red-600 font-semibold">{error}</p>
+    );
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -57,22 +72,33 @@ const OrderHistory: React.FC = () => {
         <p>No orders yet.</p>
       ) : (
         <ul className="space-y-4">
-          {orders.map((order) => ( 
-            
-            <li key={order.id} className="border p-4 rounded">
+          {orders.map((order) => (
+            <li key={order.id} className="border p-4 rounded shadow-sm">
               <div className="mb-2 text-sm text-gray-500">
-                Order ID: {order.id}
+                Order ID:{" "}
+                <Link
+                  to={`/orders/${order.id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {order.id}
+                </Link>
               </div>
               <div className="mb-2">
-                <strong>Total:</strong> ${order.total}
+                <strong>Total:</strong>{" "}
+                <span className="text-green-600 font-semibold">
+                  ${order.total.toFixed(2)}
+                </span>
               </div>
-              <div className="text-sm text-gray-600">
-                {order.createdAt?.toDate().toLocaleString()}
+              <div className="text-sm text-gray-600 mb-2">
+                {order.createdAt
+                  ? order.createdAt.toDate().toLocaleString()
+                  : "No date"}
               </div>
-              <ul className="mt-2 space-y-1">
+              <ul className="mt-2 space-y-1 list-disc list-inside">
                 {order.products.map((item, idx) => (
                   <li key={idx}>
-                    {item.title} × {item.quantity} (${item.price})
+                    {item.title} × {item.quantity} ($
+                    {item.price.toFixed(2)})
                   </li>
                 ))}
               </ul>
@@ -85,6 +111,7 @@ const OrderHistory: React.FC = () => {
 };
 
 export default OrderHistory;
+
 // This component fetches and displays the user's order history.
 // It uses Firebase Firestore to retrieve orders associated with the logged-in user.
 /**

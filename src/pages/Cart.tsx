@@ -1,70 +1,58 @@
-// pages/Cart.tsx
-import * as React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { type RootState } from '../redux/store';
-import { removeFromCart, clearCart } from '../features/cartSlice';
+import React from 'react';
 
-const Cart: React.FC = () => {
-const items = useSelector((state: RootState) => state.cart.items);
-const dispatch = useDispatch();
-
-interface CartItem {
-    id: string;
-    title: string;
-    image: string;
-    price: number;
-    quantity: number;
+export interface CartItem {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
 }
 
-const totalItems: number = items.reduce((acc: number, item: CartItem) => acc + item.quantity, 0);
-const totalPrice: string = items.reduce(
-    (acc: number, item: CartItem) => acc + item.quantity * item.price,
+interface CartProps {
+  items: CartItem[];
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+}
+
+export const Cart: React.FC<CartProps> = ({ items, onAdd, onRemove }) => {
+  const totalPrice = items.reduce(
+    (total, item) => total + item.price * item.quantity,
     0
-).toFixed(2);
+  );
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-pink-700 mb-4">Your Magical Shopping Cart 🧺</h1>
+    <div>
+      <h2>Your Cart</h2>
       {items.length === 0 ? (
-        <p className="text-pink-600">Your cart is empty! Go add some anime treasures ✨</p>
+        <p>Your cart is empty.</p>
       ) : (
-        <>
-          <ul className="space-y-4">
-            {items.map((item: CartItem) => (
-              <li key={item.id} className="flex items-center justify-between bg-white/80 p-4 rounded shadow">
-                <img src={item.image} alt={item.title} className="h-12 w-12 object-contain" />
-<div className="flex-1 px-2">
-  <h2 className="text-sm font-semibold text-pink-800">{item.title}</h2>
-
-                  <p>Qty: {item.quantity}</p>
-                  <p className="text-pink-600 font-bold">${item.price * item.quantity}</p>
-                </div>
-                <button
-                  className="text-sm bg-pink-400 hover:bg-pink-600 text-white px-3 py-1 rounded"
-                  onClick={(): void => dispatch(removeFromCart(item.id))}
-                >
-                  Remove ❌
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-6 bg-pink-100 p-4 rounded text-pink-800 font-semibold">
-            <p>Total Items: {totalItems}</p>
-            <p>Total Price: ${totalPrice}</p>
-          </div>
-          <button
-            className="mt-4 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
-            onClick={() => dispatch(clearCart())}
-          >
-            Checkout 🛒
-          </button>
-        </>
+        <ul>
+          {items.map(({ id, title, price, quantity }) => (
+            <li key={id} data-testid={`cart-item-${id}`}>
+              <h3>{title}</h3>
+              <p>Price: ${price.toFixed(2)}</p>
+              <p>Quantity: {quantity}</p>
+              <button
+                onClick={() => onAdd(id)}
+                aria-label={`Add one more ${title}`}
+              >
+                +
+              </button>
+              <button
+                onClick={() => onRemove(id)}
+                aria-label={`Remove one ${title}`}
+              >
+                -
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
+      <h3 data-testid="total-price">Total: ${totalPrice.toFixed(2)}</h3>
     </div>
   );
 };
 
-export default Cart;
+
 // This Cart component displays the items in the user's shopping cart.
 // It allows users to remove items, view total quantities and prices, and clear the cart.
 // The component uses Redux for state management, allowing for easy updates and access to the cart state.

@@ -1,69 +1,99 @@
-// src/pages/CheckoutPage.tsx
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import { db } from "../firebase/firebaseConfig";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-
-type CartItem = {
-  id: string;
-  title: string;
-  price: number;
-  quantity: number;
-};
-
-const mockCart: CartItem[] = [
-  { id: "1", title: "Anime Hoodie", price: 25, quantity: 1 },
-  { id: "2", title: "Naruto Shirt", price: 15, quantity: 2 }
-];
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const CheckoutPage: React.FC = () => {
   const { user } = useAuth();
+  const { cartItems, clearCart } = useCart();
   const navigate = useNavigate();
-  const [cart] = useState<CartItem[]>(mockCart);
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCheckout = async () => {
-    if (!user) return alert("Please log in");
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-    const order = {
-      userId: user.uid,
-      products: [
-        {id: "p1", title: "Anime Hoodie", price: 20, quantity: 2},
-        {id: "p3", title: "Naruto T-shirt", price: 15, quantity:1}
-      ],
-      total:55,
-      createdAt: serverTimestamp()
-    };
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      setError("You must be logged in to place an order.");
+      return;
+    }
 
-    await addDoc(collection(db, "orders"), order);
-    alert("Order placed!");
-    navigate("/orders");
+    if (cartItems.length === 0) {
+      setError("Your cart is empty.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const orderData = {
+        userId: user.uid,
+        products: cartItems.map(({ id, title, price, quantity }) => ({
+          id,
+          title,
+          price,
+          quantity,
+        })),
+        total: totalPrice,
+        createdAt: serverTimestamp(),
+      };
+
+      const ordersRef = collection(db, "orders");
+      await addDoc(ordersRef, orderData);
+
+      clearCart();
+      navigate("/orders");
+    } catch (err) {
+      console.error("Order failed:", err);
+      setError("Failed to place order. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Checkout</h2>
-      <ul className="space-y-3 mb-4">
-        {cart.map((item) => (
-          <li key={item.id} className="border p-3 rounded">
-            <span>{item.title}</span> × {item.quantity} — ${item.price}
-          </li>
-        ))}
-      </ul>
-      <p className="font-bold text-lg">Total: ${total}</p>
-      <button
-        onClick={handleCheckout}
-        className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-      >
-        Place Order
-      </button>
+    <div
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{
+        backgroundImage: `url('https://wallpapercave.com/wp/wp5497755.jpg')`,
+      }}
+    >
+      <div className="min-h-screen bg-black bg-opacity-70 flex items-center justify-center">
+        <div className="max-w-xl w-full p-6 bg-white bg-opacity-90 rounded-lg shadow-lg text-gray-900">
+          <h2 className="text-3xl font-bold mb-6 text-center text-purple-700">
+            Checkout
+          </h2>
+
+          <div className="mb-4 text-lg">
+            <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
+          </div>
+
+          {error && <p className="text-red-600 mb-4">{error}</p>}
+
+          <button
+            onClick={handlePlaceOrder}
+            disabled={loading}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded transition disabled:opacity-50"
+          >
+            {loading ? "Placing Order..." : "Place Order"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default CheckoutPage;
+
+
+
+
 /**
  * 🔨 Code Breakdown 🔨
  * 
