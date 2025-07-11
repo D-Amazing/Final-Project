@@ -1,9 +1,9 @@
 // src/components/Cart.tsx
 import React from "react";
-import { CartItems } from "../types/types"; // ✅ Use shared CartItem type
+import { CartItem } from "../types/types"; // ✅ Use shared CartItem type
 
 interface CartProps {
-  items: CartItems[];
+  items: CartItem[];
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -54,7 +54,7 @@ export const Cart: React.FC<CartProps> = ({ items, onAdd, onRemove }) => {
     </div>
   );
 };
-export default CartItems 
+
 
 // This Cart component displays the items in the user's shopping cart.
 // It allows users to remove items, view total quantities and prices, and clear the cart.
