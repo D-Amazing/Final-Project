@@ -1,41 +1,147 @@
-// src/pages/UserProfile.tsx
+// ✅ FILE: src/pages/UserProfile.tsx
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../firebaseConfig";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
+import { db, auth } from "../firebase/firebaseConfig";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import { deleteUser } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
-export default function UserProfile() {
-  const user = auth.currentUser;
-  const [profile, setProfile] = useState({ name: "", address: "" });
+
+// Add an explicit type for the profile
+interface UserProfileData {
+  name: string;
+  address: string;
+}
+
+const ProfilePage: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [profile, setProfile] = useState<UserProfileData>({
+    name: "",
+    address: "",
+  });
 
   useEffect(() => {
     if (!user) return;
+
     const fetchProfile = async () => {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) setProfile(docSnap.data());
-    };
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const data = snap.data() as { name?: string; address?: string} | undefined 
+        if(data) {
+          setProfile({
+            name: data.name || "",
+            address: data.address || "",
+          });
+        }
+      } 
+    }
     fetchProfile();
   }, [user]);
 
-  const handleUpdate = async () => {
-    await updateDoc(doc(db, "users", user!.uid), profile);
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    await setDoc(
+      doc(db, "users", user.uid),
+      { ...profile, email: user.email },
+      { merge: true }
+    );
+    alert("Profile updated!");
   };
 
   const handleDelete = async () => {
-    await deleteDoc(doc(db, "users", user!.uid));
-    await user!.delete();
+    if (!user) return;
+
+    const confirm = window.confirm(
+      "Are you sure you want to delete your account?"
+    );
+    if (!confirm) return;
+
+    // Delete user-related products
+    const productQuery = query(
+      collection(db, "products"),
+      where("userId", "==", user.uid)
+    );
+    const productSnap = await getDocs(productQuery);
+    const deletions = productSnap.docs.map((docRef) =>
+      deleteDoc(doc(db, "products", docRef.id))
+    );
+    await Promise.all(deletions);
+
+    // Delete user document and Firebase Auth account
+    await deleteDoc(doc(db, "users", user.uid));
+    if (auth.currentUser) {
+      await deleteUser(auth.currentUser);
+    }
+
+    alert("Account deleted.");
+    navigate("/register");
   };
 
   return (
-    <div>
-      <h1>Profile</h1>
-      <input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
-      <input value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} />
-      <button onClick={handleUpdate}>Update</button>
-      <button onClick={handleDelete}>Delete Account</button>
+    <div className="max-w-lg mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
+
+      <form onSubmit={handleUpdate} className="space-y-4">
+        <input
+          type="text"
+          value={profile.name}
+          onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+          className="w-full p-2 border"
+          placeholder="Name"
+        />
+        <input
+          type="text"
+          value={profile.address}
+          onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+          className="w-full p-2 border"
+          placeholder="Address"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Update Profile
+        </button>
+      </form>
+
+      <button
+        onClick={handleDelete}
+        className="mt-6 text-red-600 hover:underline"
+      >
+        Delete My Account
+      </button> 
+      <button
+  onClick={async () => {
+    await logout();
+    navigate("/login");
+  }}
+  className="mt-4 text-blue-600 hover:underline"
+>
+  Logout
+</button>
+
     </div>
   );
-}
+};
+
+export default ProfilePage;
+
+
 
 /**
  * 🔨 Code Breakdown 🔨

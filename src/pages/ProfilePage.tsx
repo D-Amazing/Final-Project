@@ -1,5 +1,3 @@
-// src/pages/ProfilePage.tsx
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { db, auth } from "../firebase/firebaseConfig";
@@ -52,10 +50,12 @@ const ProfilePage: React.FC = () => {
     const confirm = window.confirm("Are you sure you want to delete your account?");
     if (!confirm) return;
 
-    // Delete user's products (optional, clean up)
+    // Delete user's products
     const productQuery = query(collection(db, "products"), where("userId", "==", user.uid));
     const productSnap = await getDocs(productQuery);
-    const deletions = productSnap.docs.map(docRef => deleteDoc(doc(db, "products", docRef.id)));
+    const deletions = productSnap.docs.map((docRef) =>
+      deleteDoc(doc(db, "products", docRef.id))
+    );
     await Promise.all(deletions);
 
     // Delete user document
@@ -64,6 +64,8 @@ const ProfilePage: React.FC = () => {
     // Delete Firebase Auth account
     await deleteUser(auth.currentUser!);
 
+    // Log out and redirect
+    await logout();
     alert("Account deleted.");
     navigate("/register");
   };
@@ -103,6 +105,7 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+
 /**
  * 🔨 Code Breakdown 🔨
  * 

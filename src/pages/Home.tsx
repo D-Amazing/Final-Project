@@ -1,12 +1,10 @@
-// pages/Home.tsx
+// src/pages/Home.tsx
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '../features/cartSlice'; 
-
+import { addToCart } from '../features/cartSlice';
 import { PuffLoader } from 'react-spinners';
-
 
 interface Product {
   id: number;
@@ -48,45 +46,59 @@ const Home: React.FC = () => {
       <select
         className="p-2 rounded border border-pink-400 mb-6"
         value={selectedCategory}
-        onChange={e => setSelectedCategory(e.target.value)}
+        onChange={(e) => setSelectedCategory(e.target.value)}
       >
         <option value="">All Categories</option>
-        {Array.isArray(categories) && categories.map((cat: string) => (
-          <option key={cat} value={cat}>{cat}</option>
+        {categories.map((cat: string) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
         ))}
       </select>
 
-    {isLoading ? (
-  <div className="flex justify-center items-center h-60">
-    <PuffLoader color="#ec4899" size={60} />
-  </div>
-) : (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {products.map((product: Product) => (
-      <div key={product.id} className="bg-white/80 rounded-lg p-3 shadow-sm">
-  <img src={product.image} alt={product.title} className="h-36 object-contain mx-auto mb-1" />
-  <h2 className="text-sm font-semibold text-pink-700">{product.title}</h2>
-  <p className="text-xs italic mb-1">{product.description.slice(0, 80)}...</p>
-  <p className="text-sm text-pink-800 font-bold">${product.price}</p>
-  <p className="text-xs">Rating: {product.rating.rate} ⭐</p>
-        
+      {isLoading ? (
+        <div className="flex justify-center items-center h-60">
+          <PuffLoader color="#ec4899" size={60} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product: Product) => (
+            <div key={product.id} className="bg-white/80 rounded-lg p-3 shadow-sm">
+              <img
+                src={product.image}
+                alt={product.title}
+                className="h-36 object-contain mx-auto mb-1"
+              />
+              <h2 className="text-sm font-semibold text-pink-700">{product.title}</h2>
+              <p className="text-xs italic mb-1">
+                {product.description.slice(0, 80)}...
+              </p>
+              <p className="text-sm text-pink-800 font-bold">${product.price}</p>
+              <p className="text-xs">Rating: {product.rating.rate} ⭐</p>
 
-        <button
-          className="mt-2 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600"
-          onClick={() => dispatch(addToCart(product))}
-        >
-          Add to Cart ✨
-        </button>
-      </div>
-    ))}
-  </div>
-)}; 
-
+              <button
+                className="mt-2 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+                onClick={() =>
+                  dispatch(
+                    addToCart({
+                      ...product,
+                      quantity: 1, // ✅ Fix: Add quantity to match CartItem type
+                    })
+                  )
+                }
+              >
+                Add to Cart ✨
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default Home;
+
 // This Home component fetches product categories and products from the Fake Store API.
 // It allows users to filter products by category and add them to the cart using Redux.
 // The component uses React Query for data fetching and caching, ensuring efficient updates and re-fetching of data.

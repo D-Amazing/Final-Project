@@ -12,9 +12,10 @@ const firebaseConfig = {
   projectId: "anime-store-187a4",
   storageBucket: "anime-store-187a4.firebasestorage.app",
   messagingSenderId: "894947927108",
-  appId: "1:894947927108:web:ca403688afa97704ac0811",
-  measurementId: "G-ZXJT6B99Y4"
+  appId: "1:894947927108:web:e14ae70439739bb4ac0811",
+  measurementId: "G-8LMHM8GMQN"
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

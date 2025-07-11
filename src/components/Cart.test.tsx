@@ -1,9 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Cart, CartItem } from '../pages/Cart';
+import { Cart, } from '../pages/Cart';
+import { CartItems} from "../types/types"
 
 describe('Cart Component', () => {
-  const mockItems: CartItem[] = [
+  const mockItems: CartItems[] = [
     { id: '1', title: 'Anime Hoodie', price: 20, quantity: 2 },
     { id: '2', title: 'Manga Shirt', price: 15, quantity: 1 },
   ];

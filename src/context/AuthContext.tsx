@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -17,15 +18,21 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => useContext(AuthContext)!;
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const register = async (email: string, password: string) => {
+  const register = async (email: string, password: string): Promise<void> => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const uid = res.user.uid;
     await setDoc(doc(db, "users", uid), {
@@ -34,15 +41,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const login = (email: string, password: string) => signInWithEmailAndPassword(auth, email, password);
-  const logout = () => signOut(auth);
+  const login = async (email: string, password: string): Promise<void> => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const logout = async (): Promise<void> => {
+    await signOut(auth);
+  };
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
     });
-    return () => unsub();
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -51,6 +63,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
+
+
+
 /**
  * 🔨 Code Breakdown 🔨
  * 

@@ -1,14 +1,9 @@
-import React from 'react';
-
-export interface CartItem {
-  id: string;
-  title: string;
-  price: number;
-  quantity: number;
-}
+// src/components/Cart.tsx
+import React from "react";
+import { CartItems } from "../types/types"; // ✅ Use shared CartItem type
 
 interface CartProps {
-  items: CartItem[];
+  items: CartItems[];
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -20,38 +15,46 @@ export const Cart: React.FC<CartProps> = ({ items, onAdd, onRemove }) => {
   );
 
   return (
-    <div>
-      <h2>Your Cart</h2>
+    <div className="p-4 max-w-xl mx-auto bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-semibold mb-4">Your Cart</h2>
+
       {items.length === 0 ? (
-        <p>Your cart is empty.</p>
+        <p className="text-gray-600">Your cart is empty.</p>
       ) : (
-        <ul>
+        <ul className="space-y-4">
           {items.map(({ id, title, price, quantity }) => (
-            <li key={id} data-testid={`cart-item-${id}`}>
-              <h3>{title}</h3>
+            <li key={id} data-testid={`cart-item-${id}`} className="border-b pb-2">
+              <h3 className="text-lg font-medium">{title}</h3>
               <p>Price: ${price.toFixed(2)}</p>
               <p>Quantity: {quantity}</p>
-              <button
-                onClick={() => onAdd(id)}
-                aria-label={`Add one more ${title}`}
-              >
-                +
-              </button>
-              <button
-                onClick={() => onRemove(id)}
-                aria-label={`Remove one ${title}`}
-              >
-                -
-              </button>
+              <div className="space-x-2 mt-2">
+                <button
+                  onClick={() => onAdd(id)}
+                  aria-label={`Add one more ${title}`}
+                  className="bg-green-500 text-white px-2 py-1 rounded"
+                >
+                  +
+                </button>
+                <button
+                  onClick={() => onRemove(id)}
+                  aria-label={`Remove one ${title}`}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  -
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
-      <h3 data-testid="total-price">Total: ${totalPrice.toFixed(2)}</h3>
+
+      <h3 className="mt-6 text-xl font-bold" data-testid="total-price">
+        Total: ${totalPrice.toFixed(2)}
+      </h3>
     </div>
   );
 };
-
+export default CartItems 
 
 // This Cart component displays the items in the user's shopping cart.
 // It allows users to remove items, view total quantities and prices, and clear the cart.

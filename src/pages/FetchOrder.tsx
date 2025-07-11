@@ -1,15 +1,20 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // your firebase config
+import { db } from "../firebaseConfig"; // ✅ adjust if needed
+import { CartItems } from "../types/types"; // ✅ import your defined cart item type
 
-const placeOrder = async (userId: string, cartItems: any[], total: number) => {
+const placeOrder = async (
+  userId: string,
+  cartItems: CartItems[],
+  total: number
+): Promise<void> => {
   try {
     const orderData = {
       userId,
-      products: cartItems.map((item) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        quantity: item.quantity,
+      products: cartItems.map(({ id, title, price, quantity }) => ({
+        id,
+        title,
+        price,
+        quantity,
       })),
       total,
       createdAt: serverTimestamp(),
@@ -22,4 +27,5 @@ const placeOrder = async (userId: string, cartItems: any[], total: number) => {
     console.error("❌ Error placing order:", err);
   }
 };
+
 export default placeOrder;

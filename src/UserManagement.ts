@@ -1,19 +1,23 @@
-import { doc, getDoc, updateDoc, deleteDoc,  } from "firebase/firestore";
+import { deleteDoc, doc } from "firebase/firestore";
+import { auth} from "./firebaseConfig"; 
+import {db} from "./firebase/firebase"; 
 
-const getUserProfile = async (uid: string) => {
-  const userDoc = await getDoc(doc(db, "users", uid));
-  return userDoc.data();
+export const deleteUserAccount = async (uid: string) => {
+  try {
+    await deleteDoc(doc(db, "users", uid));
+
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      await currentUser.delete();
+      console.log("✅ User deleted from auth and Firestore.");
+    } else {
+      console.warn("⚠️ No authenticated user found.");
+    }
+  } catch (err) {
+    console.error("❌ Error deleting user account:", err);
+  }
 };
 
-const updateUserProfile = async (uid: string, newData: object) => {
-  await updateDoc(doc(db, "users", uid), newData);
-};
-
-const deleteUserAccount = async (uid: string) => {
-  await deleteDoc(doc(db, "users", uid));
-  await auth.currentUser?.delete();
-};
-export { getUserProfile, updateUserProfile, deleteUserAccount };
 
 /**
  * 🔨 Code Breakdown 🔨

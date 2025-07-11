@@ -1,10 +1,9 @@
 // src/App.tsx
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import { Navbar } from "./components/Navbar";
-
 import CheckoutPage from "./pages/CheckoutPage";
 import StorePage from "./pages/StorePage";
 import ProductDashboard from "./pages/ProductDashboard";
@@ -12,27 +11,72 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import OrderHistory from "./pages/OrderHistory";
 import ProfilePage from "./pages/ProfilePage";
+import { Cart } from "./pages/Cart";
 
-const App = () => (
-  <AuthProvider>
-    <Router>
-      <Navbar /> {/* This uses your Navbar component */}
-      <main className="p-6">
-        <Routes>
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/" element={<StorePage />} />
-          <Route path="/dashboard" element={<ProductDashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/orders" element={<OrderHistory />} />
-        </Routes>
-      </main>
-    </Router>
-  </AuthProvider>
-);
+import { CartItems } from "./types/types"; // ✅ correct type import
+
+const App: React.FC = () => {
+  const [cartItems, setCartItems] = useState<CartItems[]>([]);
+
+  // ✅ Add item to cart or increase quantity
+  const handleAddToCart = (id: string) => {
+    setCartItems(prev =>
+      prev.map(item =>
+        item.id === id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
+  };
+
+  // ✅ Remove item or decrease quantity
+  const handleRemoveFromCart = (id: string) => {
+    setCartItems(prev =>
+      prev
+        .map(item =>
+          item.id === id
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter(item => item.quantity > 0)
+    );
+  };
+
+  return (
+    <AuthProvider>
+      <Router>
+        <Navbar />
+        <main className="p-6">
+          <Routes>
+            <Route path="/" element={<StorePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/dashboard" element={<ProductDashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+
+            <Route
+            />
+            <Route path="/orders" element={<OrderHistory />} />
+            <Route
+              path="/cart"
+              element={
+                <Cart
+                  items={cartItems}
+                  onAdd={handleAddToCart}
+                  onRemove={handleRemoveFromCart}
+                />
+              }
+            />
+          </Routes>
+        </main>
+      </Router>
+    </AuthProvider>
+  );
+};
 
 export default App;
+
 
 
 
