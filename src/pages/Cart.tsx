@@ -54,7 +54,7 @@ export const Cart: React.FC<CartProps> = ({ items, onAdd, onRemove }) => {
     </div>
   );
 };
-export default CartItem 
+
 
 // This Cart component displays the items in the user's shopping cart.
 // It allows users to remove items, view total quantities and prices, and clear the cart.
